@@ -1,11 +1,2050 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>入梦真AI预测系统 · 贝叶斯优化集成版</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root{
+      --bg0:#0b1020;
+      --bg1:#0f172a;
+      --card: rgba(17, 26, 51, .62);
+      --primary:#4f46e5;
+      --primary2:#6366f1;
+      --secondary:#06b6d4;
+      --success:#10b981;
+      --warning:#f59e0b;
+      --danger:#ef4444;
+
+      --text:#e6edf6;
+      --muted:#94a3b8;
+
+      --shadow2: 0 12px 30px rgba(0,0,0,.35);
+
+      --radius-xl: 22px;
+      --radius-lg: 18px;
+      --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--mono);
+      color:var(--text);
+      background:
+        radial-gradient(900px 520px at 20% 0%, rgba(79,70,229,.18), transparent 55%),
+        radial-gradient(900px 520px at 95% 15%, rgba(6,182,212,.10), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1) 45%, #0a0f1e);
+      padding: 18px;
+      overflow-x:hidden;
+    }
+
+    .container{max-width:1600px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;gap:14px;
+      padding:14px 16px;border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow: 0 14px 34px rgba(0,0,0,.35);
+      backdrop-filter: blur(14px);-webkit-backdrop-filter: blur(14px);
+    }
+    .brand{display:flex;align-items:center;gap:12px;min-width:260px}
+    .brand-icon{
+      width:44px;height:44px;border-radius: 14px;display:flex;align-items:center;justify-content:center;
+      background: linear-gradient(135deg, rgba(99,102,241,.18), rgba(6,182,212,.08));
+      border:1px solid rgba(255,255,255,.10);color:#c7d2fe;
+    }
+    .brand-title{font-weight:900;letter-spacing:.2px;font-size:1.08rem}
+    .brand-sub{color:var(--muted);font-size:.85rem}
+
+    .statusbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+    .pill{
+      display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius: 999px;
+      background: rgba(2,6,23,.35);
+      border:1px solid rgba(255,255,255,.08);color:var(--muted);font-size:.82rem;
+    }
+    .pill b{color:#e2e8f0;font-weight:900}
+    .dot{width:8px;height:8px;border-radius:999px;background: rgba(148,163,184,.8)}
+    .dot.ok{background: rgba(16,185,129,.95)}
+    .dot.warn{background: rgba(245,158,11,.95)}
+    .dot.bad{background: rgba(239,68,68,.95)}
+
+    .main-grid{display:grid;grid-template-columns: 380px 1fr 420px;gap:18px;align-items:stretch;}
+    @media (max-width: 1400px){ .main-grid{grid-template-columns: 1fr} }
+
+    .panel{
+      background: var(--card);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow2);
+      backdrop-filter: blur(18px);-webkit-backdrop-filter: blur(18px);
+      padding: 22px;
+      display:flex;flex-direction:column;
+      min-height: 260px;
+      transition: transform .20s ease, box-shadow .20s ease, border-color .20s ease;
+    }
+    .panel:hover{
+      transform: translateY(-2px);
+      border-color: rgba(99,102,241,.28);
+      box-shadow: var(--shadow2), 0 0 34px rgba(99,102,241,.08);
+    }
+    .panel-title{
+      display:flex; align-items:center; gap:12px;
+      padding-bottom: 14px;margin-bottom: 16px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .panel-title i{
+      width:46px;height:46px;border-radius: 14px;
+      display:flex;align-items:center;justify-content:center;
+      background: linear-gradient(135deg, rgba(99,102,241,.16), rgba(6,182,212,.08));
+      border:1px solid rgba(255,255,255,.08);
+      color:#c7d2fe;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      flex:0 0 auto;
+    }
+    .panel-title h2{margin:0;font-size:1.18rem;font-weight:800;letter-spacing:.2px}
+
+    .number-input{
+      width:100%;
+      padding: 18px 16px;
+      font-size: 1.7rem;
+      font-weight: 900;
+      text-align:center;
+      background: rgba(2,6,23,.55);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: var(--radius-lg);
+      color: var(--text);
+      outline:none;
+      transition: .2s ease;
+    }
+    .number-input:focus{
+      border-color: rgba(99,102,241,.55);
+      box-shadow: 0 0 0 4px rgba(99,102,241,.16);
+      transform: translateY(-1px);
+    }
+
+    .input-buttons{margin-top: 14px;display:grid;grid-template-columns: repeat(2, 1fr);gap: 12px;}
+    @media (max-width:768px){ .input-buttons{grid-template-columns:1fr} }
+
+    .btn{
+      user-select:none;border:none;border-radius: 14px;
+      padding: 14px 16px;font-family: var(--mono);
+      font-weight: 800;font-size: .98rem;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;gap:10px;
+      transition: transform .18s ease, filter .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+      position:relative;overflow:hidden;
+    }
+    .btn:active{transform: translateY(1px) scale(.99)}
+    .btn::before{
+      content:"";position:absolute; inset:-1px;
+      background: radial-gradient(200px 60px at 20% 0%, rgba(255,255,255,.14), transparent 60%);
+      opacity:0;transition: opacity .18s ease;
+    }
+    .btn:hover::before{opacity:1}
+    .btn-primary{
+      color:white;background: linear-gradient(135deg, var(--primary), var(--primary2));
+      box-shadow: 0 12px 30px rgba(79,70,229,.22);
+    }
+    .btn-primary:hover{filter: brightness(1.06); box-shadow: 0 16px 40px rgba(79,70,229,.28)}
+    .btn-secondary{
+      color: #e2e8f0;background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.10);
+    }
+    .btn-secondary:hover{background: rgba(255,255,255,.08);border-color: rgba(99,102,241,.22);}
+    .btn-danger{
+      color:white;background: linear-gradient(135deg, var(--danger), #b91c1c);
+      box-shadow: 0 12px 30px rgba(239,68,68,.16);
+    }
+    .btn-danger:hover{filter: brightness(1.05)}
+    .btn[disabled]{opacity:.45;cursor:not-allowed;filter:saturate(.7)}
+
+    .prediction-header{display:flex; justify-content:space-between; align-items:center;gap:12px;margin-bottom: 10px;}
+    .confidence-meter{display:flex;align-items:center;gap:12px;color:var(--muted)}
+    .meter-bar{width: 200px; height: 10px;border-radius: 999px;background: rgba(255,255,255,.08);overflow:hidden;border:1px solid rgba(255,255,255,.06);}
+    .meter-fill{height:100%;width:0%;border-radius: 999px;background: linear-gradient(90deg, var(--danger), var(--warning), var(--success));transition: width .9s ease;}
+    .predictions-grid{display:grid;grid-template-columns: repeat(5, 1fr);gap: 14px;margin-top: 14px;flex:1;}
+    @media (max-width:768px){ .predictions-grid{grid-template-columns: repeat(3, 1fr);} }
+
+    .prediction-card{
+      position:relative;border-radius: 18px;padding: 16px 12px;
+      background: linear-gradient(180deg, rgba(2,6,23,.28), rgba(2,6,23,.55));
+      border: 1px solid rgba(255,255,255,.10);text-align:center;
+      transition: .22s ease;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height: 140px;
+    }
+    .prediction-card:hover{transform: translateY(-5px);border-color: rgba(99,102,241,.26);box-shadow: 0 16px 40px rgba(0,0,0,.35);}
+    .prediction-card.top-1{
+      border-color: rgba(99,102,241,.60);
+      background: linear-gradient(135deg, rgba(99,102,241,.18), rgba(6,182,212,.08));
+      box-shadow: 0 0 34px rgba(99,102,241,.12);
+      transform: translateY(-2px) scale(1.02);
+    }
+    .prediction-card.positive-card {
+      border-color: rgba(99,102,241,.60);
+      background: linear-gradient(135deg, rgba(99,102,241,.18), rgba(6,182,212,.08));
+    }
+    .prediction-card.negative-card {
+      border-color: rgba(148,163,184,.30);
+      background: linear-gradient(135deg, rgba(148,163,184,.08), rgba(100,116,139,.04));
+      color: var(--muted);
+    }
+    .prediction-card.negative-card .prediction-number {
+      color: #94a3b8;
+    }
+    .prediction-card.negative-card .prediction-prob {
+      color: #64748b;
+    }
+    .prediction-number{font-size: 3rem;font-weight: 950;letter-spacing:.5px;}
+    .prediction-prob{margin-top:6px;color:#a5f3fc;font-weight:900}
+    .prediction-rank{margin-top:8px;color:var(--muted);font-size:.85rem}
+    .hit-badge{
+      position:absolute; top:10px; right:10px;
+      width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:999px;
+      background: rgba(16,185,129,.95);border:1px solid rgba(255,255,255,.22);
+      box-shadow: 0 10px 22px rgba(16,185,129,.20);font-weight:900;
+    }
+    .hit-badge.positive-badge {
+      background: rgba(16,185,129,.95);
+      color: white;
+    }
+    .hit-badge.negative-badge {
+      background: rgba(239,68,68,.95);
+      color: white;
+    }
+
+    .model-selector{display:grid;grid-template-columns: repeat(2, 1fr);gap: 10px;margin-bottom: 12px;}
+    @media (max-width:768px){ .model-selector{grid-template-columns:1fr} }
+
+    .model-option{
+      padding: 12px 10px;border-radius: 16px;border:1px solid rgba(255,255,255,.10);
+      background: rgba(2,6,23,.25);cursor:pointer;text-align:center;transition:.18s ease;
+    }
+    .model-option:hover{border-color: rgba(99,102,241,.26);background: rgba(99,102,241,.08);}
+    .model-option.active{
+      border-color: rgba(99,102,241,.52);
+      background: linear-gradient(135deg, rgba(99,102,241,.16), rgba(6,182,212,.08));
+      box-shadow: 0 0 26px rgba(99,102,241,.10);
+    }
+    .model-icon{font-size:1.6rem; color:#c7d2fe; margin-bottom:6px}
+
+    .param-slider{margin: 12px 0 6px}
+    .slider-label{display:flex;justify-content:space-between;color:var(--muted);font-size:.88rem;margin-bottom:8px}
+    .slider{
+      width:100%;height:8px;border-radius:999px;background: rgba(255,255,255,.08);
+      outline:none;-webkit-appearance:none;border: 1px solid rgba(255,255,255,.06);
+    }
+    .slider::-webkit-slider-thumb{
+      -webkit-appearance:none;width:20px;height:20px;border-radius:999px;background: var(--primary2);
+      box-shadow: 0 0 0 5px rgba(99,102,241,.14), 0 10px 24px rgba(0,0,0,.25);
+      cursor:pointer;
+    }
+
+    .model-buttons{display:grid;grid-template-columns: repeat(2, 1fr);gap: 12px;margin-top: 12px;}
+    .btn-full{grid-column: 1 / -1}
+
+    .training-progress{
+      margin-top: 14px;padding: 14px;border-radius: 16px;
+      background: rgba(2,6,23,.30);border: 1px solid rgba(255,255,255,.10);
+    }
+    .progress-header{display:flex;justify-content:space-between;color:var(--muted);margin-bottom:10px}
+    .progress-bar-container{height: 10px;border-radius:999px;background: rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.06);overflow:hidden;}
+    .progress-bar{height:100%;width:0%;border-radius:999px;background: linear-gradient(90deg, var(--primary2), var(--secondary));transition: width .35s ease;}
+    .training-metrics{margin-top: 12px;display:grid;grid-template-columns: repeat(2, 1fr);gap: 10px;}
+    .metric{border-radius: 14px;padding: 10px 12px;background: rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);text-align:center;}
+    .metric-value{font-weight:950;color:#c7d2fe}
+    .metric-label{font-size:.8rem;color:var(--muted)}
+
+    .history-list{flex:1; overflow:auto; padding-right: 6px}
+    .history-item{
+      display:flex; gap:12px; align-items:center;padding: 12px;border-radius: 16px;
+      background: rgba(2,6,23,.24);border:1px solid rgba(255,255,255,.08);
+      margin-bottom: 10px;transition: .18s ease;
+    }
+    .history-item:hover{transform: translateX(3px); border-color: rgba(99,102,241,.22)}
+    .history-item.hit{box-shadow: inset 4px 0 0 rgba(16,185,129,.9)}
+    .history-item.miss{box-shadow: inset 4px 0 0 rgba(239,68,68,.9)}
+    .history-item.positive-hit {
+      box-shadow: inset 4px 0 0 rgba(16,185,129,.9);
+    }
+    .history-item.negative-hit {
+      box-shadow: inset 4px 0 0 rgba(239,68,68,.9);
+    }
+    .history-number{
+      width:46px;height:46px;border-radius: 14px;display:flex;align-items:center;justify-content:center;
+      background: linear-gradient(135deg, rgba(99,102,241,.9), rgba(79,70,229,.9));
+      font-size:1.4rem;font-weight:950;flex:0 0 auto;
+    }
+    .history-number.positive-number {
+      background: linear-gradient(135deg, rgba(16,185,129,.9), rgba(5,150,105,.9));
+    }
+    .history-number.negative-number {
+      background: linear-gradient(135deg, rgba(239,68,68,.9), rgba(185,28,28,.9));
+    }
+    .history-content{flex:1}
+    .history-predictions{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+    .prediction-badge{
+      padding: 4px 10px;border-radius:999px;background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.08);color: var(--muted);
+      font-size:.8rem;font-weight:900;
+    }
+    .prediction-badge.hit{color:#bbf7d0;border-color: rgba(16,185,129,.35);background: rgba(16,185,129,.12);}
+    .prediction-badge.positive-badge {
+      border-color: rgba(99,102,241,.35);
+      background: rgba(99,102,241,.12);
+      color: #c7d2fe;
+    }
+    .prediction-badge.positive-hit-badge {
+      border-color: rgba(16,185,129,.35);
+      background: rgba(16,185,129,.12);
+      color: #bbf7d0;
+    }
+    .prediction-badge.negative-hit-badge {
+      border-color: rgba(239,68,68,.35);
+      background: rgba(239,68,68,.12);
+      color: #fecaca;
+    }
+
+    .stats-grid{display:grid;grid-template-columns: repeat(2, 1fr);gap: 12px;margin-top: 10px;}
+    @media (max-width:768px){ .stats-grid{grid-template-columns:1fr} }
+    .stat-card{
+      border-radius: 18px;padding: 14px;text-align:center;background: rgba(2,6,23,.24);
+      border:1px solid rgba(255,255,255,.08);transition: .18s ease;
+    }
+    .stat-card:hover{border-color: rgba(99,102,241,.18); transform: translateY(-2px)}
+    .stat-value{font-size: 2.15rem;font-weight: 950;color:#e2e8f0;letter-spacing:.2px;}
+    .stat-label{color:var(--muted);font-size:.9rem}
+
+    .model-architecture{
+      background: rgba(2,6,23,.24);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius: 18px;
+      padding: 12px;
+    }
+    .layer{
+      display:flex; gap:10px; align-items:center;padding: 10px;border-radius: 14px;
+      background: rgba(255,255,255,.04);border: 1px solid rgba(255,255,255,.08);margin-bottom: 8px;
+    }
+    .layer-type{min-width:120px; color:#c7d2fe; font-weight:950}
+    .layer-shape{color:var(--muted); font-size:.86rem}
+
+    .log-panel{grid-column:1 / -1; height: 320px}
+    .log-container{
+      flex:1;overflow:auto;background: rgba(2,6,23,.30);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius: 18px;padding: 12px;
+    }
+    .log-entry{
+      display:flex; gap:10px; align-items:flex-start;
+      padding: 10px 12px;border-radius: 14px;
+      background: rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
+      margin-bottom: 8px;
+    }
+    .log-entry.log-info{border-left: 4px solid rgba(99,102,241,.85)}
+    .log-entry.log-success{border-left: 4px solid rgba(16,185,129,.85)}
+    .log-entry.log-warning{border-left: 4px solid rgba(245,158,11,.9)}
+    .log-entry.log-error{border-left: 4px solid rgba(239,68,68,.9)}
+    .log-time{color:var(--muted); font-size:.82rem; min-width: 84px}
+    .log-message{color:#e5e7eb; font-size:.92rem; line-height:1.4}
+
+    /* BO leaderboard */
+    .bo-leaderboard{
+      margin-top:10px;max-height: 220px;overflow:auto;border-radius: 16px;
+      background: rgba(2,6,23,.28);border:1px solid rgba(255,255,255,.08);padding: 10px;
+    }
+    .bo-row{
+      display:flex;gap:10px;align-items:center;justify-content:space-between;
+      padding:10px 10px;border-radius: 14px;background: rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);margin-bottom: 8px;
+    }
+    .bo-row.top{
+      border-color: rgba(99,102,241,.45);
+      background: linear-gradient(135deg, rgba(99,102,241,.14), rgba(6,182,212,.06));
+      box-shadow: 0 0 22px rgba(99,102,241,.10);
+    }
+    .bo-left{display:flex; flex-direction:column; gap:4px}
+    .bo-title{font-weight:950; color:#e2e8f0}
+    .bo-sub{color:var(--muted); font-size:.86rem}
+    .bo-right{display:flex; flex-direction:column; gap:4px; text-align:right}
+    .bo-score{font-weight:950; color:#a5f3fc}
+    .bo-tag{
+      display:inline-flex;align-items:center;gap:6px;padding: 3px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);background: rgba(255,255,255,.04);
+      color: var(--muted);font-size:.78rem;font-weight:900;
+    }
+
+    /* scrollbars */
+    ::-webkit-scrollbar{width:10px;height:10px}
+    ::-webkit-scrollbar-track{background: rgba(255,255,255,.05); border-radius:999px}
+    ::-webkit-scrollbar-thumb{background: rgba(99,102,241,.65); border-radius:999px; border:2px solid rgba(0,0,0,.15)}
+    ::-webkit-scrollbar-thumb:hover{background: rgba(129,140,248,.88)}
+    ::selection{background: rgba(99,102,241,.28); color:#fff}
+
+    @media (max-width: 520px){
+      body{padding:12px}
+      .topbar{padding:12px}
+      .meter-bar{width:140px}
+    }
+    @media (max-width: 420px){
+      .predictions-grid{grid-template-columns: repeat(2, 1fr)}
+      .main-grid{gap:12px}
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-icon"><i class="fas fa-shield-halved"></i></div>
+      <div class="brand-text">
+        <div class="brand-title">入梦真AI预测系统</div>
+        <div class="brand-sub">Bayesian Optimization + Ensemble · TensorFlow.js</div>
+      </div>
+    </div>
+
+    <div class="statusbar">
+      <div class="pill">
+        <span class="dot" id="gpuDot"></span>
+        <span>GPU/WebGL</span>
+        <b id="gpuStatus">检测中</b>
+      </div>
+      <div class="pill">
+        <span class="dot ok"></span>
+        <span>样本数</span>
+        <b id="sampleCount">0</b>
+      </div>
+      <div class="pill">
+        <span class="dot" id="modelDot"></span>
+        <span>模型状态</span>
+        <b id="modelStatus">未加载</b>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+
+    <div class="panel input-panel">
+      <div class="panel-title">
+        <i class="fas fa-keyboard"></i>
+        <h2>数据输入</h2>
+      </div>
+
+      <input type="number" min="0" max="9" placeholder="输入数字 0-9" class="number-input" id="numberInput" />
+
+      <div class="input-buttons">
+        <button class="btn btn-primary" id="submitBtn"><i class="fas fa-paper-plane"></i>提交数字</button>
+        <button class="btn btn-secondary" id="randomBtn"><i class="fas fa-dice"></i>随机数字</button>
+
+        <button class="btn btn-secondary" id="autoSubmitBtn"><i class="fas fa-bolt"></i>快速提交</button>
+        <button class="btn btn-secondary" id="importBtn"><i class="fas fa-file-import"></i>导入历史(TXT)</button>
+
+        <button class="btn btn-danger" id="clearBtn"><i class="fas fa-trash"></i>清空数据</button>
+      </div>
+
+      <input type="file" id="importFile" accept=".txt,text/plain" style="display:none" />
+
+      <div style="color:var(--muted); margin-top:12px; font-size:.88rem; line-height:1.5;">
+        <i class="fas fa-circle-info"></i>
+        TXT 内容可包含任意字符，系统会提取 0-9 数字（例如：<b style="color:#c7d2fe;">121335656898</b>）。
+      </div>
+    </div>
+
+    <div class="panel prediction-panel">
+      <div class="panel-title">
+        <i class="fas fa-bullseye"></i>
+        <h2>Top-5 预测结果</h2>
+      </div>
+
+      <div style="flex:1;display:flex;flex-direction:column;">
+        <div class="prediction-header">
+          <div class="confidence-meter">
+            <span>预测信心</span>
+            <div class="meter-bar"><div class="meter-fill" id="confidenceMeter"></div></div>
+            <span id="confidenceValue">0%</span>
+          </div>
+          <div style="color:var(--muted); font-size:.85rem;" id="modeHint">模式：单模型</div>
+        </div>
+
+        <div id="predictionsGrid" class="predictions-grid">
+          <div class="prediction-card">
+            <div class="prediction-number">?</div>
+            <div class="prediction-prob">等待预测</div>
+            <div class="prediction-rank">排名 #-</div>
+          </div>
+        </div>
+
+        <div style="color:var(--muted);margin-top:10px;text-align:center;font-size:.92rem;">
+          <i class="fas fa-info-circle"></i>
+          若启用集成，将多个模型的概率加权平均输出
+        </div>
+      </div>
+    </div>
+
+    <div class="panel model-panel" style="overflow:auto;">
+      <div class="panel-title">
+        <i class="fas fa-cogs"></i>
+        <h2>模型控制</h2>
+      </div>
+
+      <div class="model-selector">
+        <div class="model-option active" data-model="transformer">
+          <i class="fas fa-diagram-project model-icon"></i>
+          <div>方案A（Transformer）</div>
+        </div>
+        <div class="model-option" data-model="lstm">
+          <i class="fas fa-wave-square model-icon"></i>
+          <div>方案B（LSTM）</div>
+        </div>
+        <div class="model-option" data-model="mlp">
+          <i class="fas fa-table-cells-large model-icon"></i>
+          <div>方案C（MLP）</div>
+        </div>
+        <div class="model-option" data-model="cnn">
+          <i class="fas fa-sliders model-icon"></i>
+          <div>方案D（CNN）</div>
+        </div>
+      </div>
+
+      <div class="param-slider">
+        <div class="slider-label"><span>序列长度: <b id="seqLengthValue">10</b></span></div>
+        <input type="range" min="3" max="30" value="10" class="slider" id="seqLength">
+      </div>
+
+      <div class="param-slider">
+        <div class="slider-label"><span>训练轮次: <b id="epochsValue">50</b></span></div>
+        <input type="range" min="10" max="200" value="50" class="slider" id="epochs">
+      </div>
+
+      <div class="param-slider">
+        <div class="slider-label"><span>批次大小: <b id="batchSizeValue">32</b></span></div>
+        <input type="range" min="8" max="128" value="32" class="slider" id="batchSize">
+      </div>
+
+      <div class="param-slider">
+        <div class="slider-label"><span>学习率: <b id="learningRateValue">0.001</b></span></div>
+        <input type="range" min="0.0001" max="0.01" step="0.0001" value="0.001" class="slider" id="learningRate">
+      </div>
+
+      <div class="model-buttons">
+        <button class="btn btn-primary btn-full" id="trainBtn"><i class="fas fa-play"></i>开始训练（单模型）</button>
+        <button class="btn btn-secondary" id="stopTrainBtn" disabled><i class="fas fa-stop"></i>停止训练</button>
+        <button class="btn btn-secondary" id="saveModelBtn"><i class="fas fa-save"></i>保存单模型</button>
+        <button class="btn btn-secondary" id="loadModelBtn"><i class="fas fa-folder-open"></i>加载单模型</button>
+      </div>
+
+      <div class="training-progress" id="trainingProgress" style="display:none;">
+        <div class="progress-header">
+          <span>训练进度</span>
+          <span id="epochProgress">0/0</span>
+        </div>
+        <div class="progress-bar-container"><div class="progress-bar" id="progressBar"></div></div>
+        <div class="training-metrics">
+          <div class="metric"><div class="metric-value" id="lossValue">0.0000</div><div class="metric-label">损失</div></div>
+          <div class="metric"><div class="metric-value" id="accuracyValue">0.00%</div><div class="metric-label">准确率</div></div>
+          <div class="metric"><div class="metric-value" id="valLossValue">0.0000</div><div class="metric-label">验证损失</div></div>
+          <div class="metric"><div class="metric-value" id="valAccuracyValue">0.00%</div><div class="metric-label">验证准确率</div></div>
+        </div>
+      </div>
+
+      <!-- ===== 贝叶斯优化面板 ===== -->
+      <div class="training-progress" id="boPanel" style="display:block; margin-top:14px;">
+        <div class="progress-header">
+          <span>贝叶斯优化（自动选模型/参数）</span>
+          <span id="boStatusText" style="color:var(--muted);">未开始</span>
+        </div>
+
+        <div class="param-slider">
+          <div class="slider-label"><span>试验次数: <b id="boTrialsValue">12</b></span></div>
+          <input type="range" min="5" max="40" value="12" class="slider" id="boTrials">
+        </div>
+
+        <div class="param-slider">
+          <div class="slider-label"><span>每次快速训练轮次: <b id="boQuickEpochsValue">12</b></span></div>
+          <input type="range" min="3" max="30" value="12" class="slider" id="boQuickEpochs">
+        </div>
+
+        <div class="param-slider">
+          <div class="slider-label"><span>集成数量 Top-K: <b id="boTopKValue">2</b></span></div>
+          <!-- 只用 MLP+CNN，所以最大 2 -->
+          <input type="range" min="1" max="2" value="2" class="slider" id="boTopK">
+        </div>
+
+        <label style="display:flex; gap:10px; align-items:center; color:var(--muted); margin-top:10px;">
+          <input type="checkbox" id="boUseEnsemble" checked />
+          优化后启用集成（Top-K）
+        </label>
+
+        <div class="model-buttons" style="margin-top:12px;">
+          <button class="btn btn-primary btn-full" id="boStartBtn"><i class="fas fa-wand-magic-sparkles"></i>开始贝叶斯优化</button>
+          <button class="btn btn-secondary" id="boStopBtn" disabled><i class="fas fa-ban"></i>停止优化</button>
+          <button class="btn btn-secondary" id="boApplyBestBtn" disabled><i class="fas fa-check"></i>应用最佳（切换为单模型）</button>
+        </div>
+
+        <div style="margin-top:12px; color:var(--muted); font-size:.9rem;">
+          结果榜单（按验证准确率 val_acc 排序）
+        </div>
+
+        <div id="boLeaderboard" class="bo-leaderboard">
+          <div style="color:var(--muted); text-align:center; padding:12px;">等待开始...</div>
+        </div>
+
+        <div style="margin-top:10px; color:var(--muted); font-size:.85rem; line-height:1.45;">
+          提示：BO 过程会多次训练（较耗时）。如果数据本身随机，val_acc 会接近 10% 属于正常现象。
+        </div>
+      </div>
+    </div>
+
+    <div class="panel history-panel" style="max-height:420px; overflow:hidden;">
+      <div class="panel-title">
+        <i class="fas fa-history"></i>
+        <h2>历史记录</h2>
+      </div>
+      <div id="historyList" class="history-list"></div>
+    </div>
+
+    <div class="panel stats-panel" style="max-height:420px; overflow:auto;">
+      <div class="panel-title">
+        <i class="fas fa-chart-bar"></i>
+        <h2>统计信息</h2>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value" id="totalRecords">0</div><div class="stat-label">总记录数</div></div>
+        <div class="stat-card"><div class="stat-value" id="hitRate">0%</div><div class="stat-label">命中率(Top-5)</div></div>
+        <div class="stat-card"><div class="stat-value" id="hottestNumber">-</div><div class="stat-label">最热数字</div></div>
+        <div class="stat-card"><div class="stat-value" id="coldestNumber">-</div><div class="stat-label">最冷数字</div></div>
+      </div>
+    </div>
+
+    <div class="panel info-panel" style="max-height:420px; overflow:auto;">
+      <div class="panel-title">
+        <i class="fas fa-info-circle"></i>
+        <h2>模型信息</h2>
+      </div>
+      <div style="color:var(--muted); margin-bottom:10px;">
+        当前方案: <span id="currentModelName" style="color:#c7d2fe; font-weight:950;">未加载</span>
+      </div>
+      <div id="modelArchitecture" class="model-architecture">
+        <div style="color:var(--muted); text-align:center; padding: 18px;">等待模型训练或加载...</div>
+      </div>
+    </div>
+
+    <div class="panel log-panel">
+      <div class="panel-title">
+        <i class="fas fa-terminal"></i>
+        <h2>系统日志</h2>
+        <button class="btn btn-secondary" id="clearLogBtn" style="margin-left:auto; padding:10px 14px; font-size:.95rem;">
+          <i class="fas fa-eraser"></i>清空日志
+        </button>
+      </div>
+      <div id="logContainer" class="log-container">
+        <div class="log-entry log-info">
+          <span class="log-time" id="currentTime">00:00:00</span>
+          <span class="log-message">系统初始化中...</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.12.0/dist/tf.min.js"></script>
+
+<script>
+/* =========================================================
+   版本说明（按你的要求已修改）
+   1) BO 只搜索：MLP + CNN
+   2) BO 集成：Top-K 最大=2
+   3) 推荐输出：温度采样(1.2) + top-p(0.9) + 无放回抽5个（轻微变化）
+   4) 正数为推荐数字，反数为非推荐数字
+   5) 历史记录中显示正数命中或反数命中
+   ========================================================= */
+
+const STORAGE_KEY = 'complete_nn_predictor_v4_single';
+let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+let modelType = 'transformer';
+let isTraining = false;
+let stopTraining = false;
+
+// BO / Ensemble
+let isOptimizing = false;
+let stopOptimizing = false;
+let boResults = [];            // {config, valAcc, valLoss}
+let ensembleModels = [];       // [{model, modelType, inputShape, weight, isTrained, name}]
+
+/* ==================== 采样推荐（轻微变化） ==================== */
+const RECO_TEMPERATURE = 1.2;  // 轻微变化
+const RECO_TOP_P = 0.9;
+
+function normalizeProbs(p){
+  const s = p.reduce((a,b)=>a+b,0);
+  if(!s || !Number.isFinite(s)) return new Array(p.length).fill(1/p.length);
+  return p.map(x=>Math.max(0,x)/s);
+}
+function applyTemperature(probs, temperature=1.2){
+  const t = Math.max(0.2, temperature);
+  const p = probs.map(x => Math.pow(Math.max(x, 1e-12), 1/t));
+  return normalizeProbs(p);
+}
+function topPFilter(probs, topP=0.9){
+  const pairs = probs.map((p,i)=>({p,i})).sort((a,b)=>b.p-a.p);
+  let cum = 0;
+  const keep = [];
+  for(const it of pairs){
+    keep.push(it);
+    cum += it.p;
+    if(cum >= topP) break;
+  }
+  const out = new Array(probs.length).fill(0);
+  for(const it of keep) out[it.i] = probs[it.i];
+  return normalizeProbs(out);
+}
+function sampleKWithoutReplacement(probs, k){
+  const p = probs.slice();
+  const out = [];
+  for(let t=0;t<k;t++){
+    const s = p.reduce((a,b)=>a+b,0);
+    if(s <= 0) break;
+    let r = Math.random() * s;
+    let pick = 0;
+    for(let i=0;i<p.length;i++){
+      r -= p[i];
+      if(r <= 0){ pick = i; break; }
+    }
+    out.push(pick);
+    p[pick] = 0;
+  }
+  return out;
+}
+
+/* ==================== 新功能：生成包含所有数字的预测结果 ==================== */
+function generateAllPredictions(probs10, k=5){
+  let p = normalizeProbs(probs10);
+  p = applyTemperature(p, RECO_TEMPERATURE);
+  p = topPFilter(p, RECO_TOP_P);
+  const picks = sampleKWithoutReplacement(p, k);
+  
+  // 创建包含0-9所有数字的预测结果
+  const allPredictions = [];
+  
+  // 添加正数（推荐的数字）
+  picks.forEach((num, idx) => {
+    allPredictions.push({
+      number: num,
+      probability: p[num],
+      rank: idx + 1,
+      isRecommended: true  // 正数
+    });
+  });
+  
+  // 添加反数（未推荐的数字）
+  for(let i = 0; i < 10; i++){
+    if(!picks.includes(i)){
+      allPredictions.push({
+        number: i,
+        probability: p[i] || 0.001, // 给反数一个很小的概率值
+        rank: 0, // 反数没有排名
+        isRecommended: false  // 反数
+      });
+    }
+  }
+  
+  return allPredictions;
+}
+
+/* ==================== 状态栏 ==================== */
+function setGpuStatus(ok, text){
+  const dot = document.getElementById('gpuDot');
+  const el = document.getElementById('gpuStatus');
+  dot.className = 'dot ' + (ok ? 'ok' : 'bad');
+  el.textContent = text;
+}
+function setModelStatus(state){
+  const dot = document.getElementById('modelDot');
+  const el = document.getElementById('modelStatus');
+  const map = {'未加载':'bad','已加载':'ok','训练中':'warn','已训练':'ok'};
+  dot.className = 'dot ' + (map[state] || '');
+  el.textContent = state;
+}
+function updateSampleCount(){
+  document.getElementById('sampleCount').textContent = String(history.length);
+}
+function modelTypeToScheme(type){
+  const m = { transformer:'方案A(Transformer)', lstm:'方案B(LSTM)', mlp:'方案C(MLP)', cnn:'方案D(CNN)' };
+  return m[type] || '方案A(Transformer)';
+}
+async function detectBackend(){
+  try{
+    await tf.ready();
+    const backend = tf.getBackend();
+    setGpuStatus(backend === 'webgl', backend === 'webgl' ? '可用' : backend.toUpperCase());
+  }catch(e){
+    setGpuStatus(false, '不可用');
+  }
+}
+
+/* ==================== 时钟 ==================== */
+function updateCurrentTime(){
+  const el = document.getElementById('currentTime');
+  if(el) el.textContent = new Date().toLocaleTimeString('zh-CN', { hour12:false });
+}
+setInterval(updateCurrentTime, 1000);
+updateCurrentTime();
+
+/* ==================== 日志 ==================== */
+function log(message, type='info'){
+  const time = new Date();
+  const logEntry = document.createElement('div');
+  logEntry.className = `log-entry log-${type}`;
+
+  const timeSpan = document.createElement('span');
+  timeSpan.className = 'log-time';
+  timeSpan.textContent = time.toLocaleTimeString('zh-CN', { hour12:false });
+
+  const msgSpan = document.createElement('span');
+  msgSpan.className = 'log-message';
+  msgSpan.textContent = message;
+
+  logEntry.appendChild(timeSpan);
+  logEntry.appendChild(msgSpan);
+
+  const container = document.getElementById('logContainer');
+  container.appendChild(logEntry);
+  container.scrollTop = container.scrollHeight;
+}
+
+/* ==================== 数据 ==================== */
+function saveHistory(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+}
+function addToHistory(number, predictions=null){
+  // 判断命中类型：正数命中还是反数命中
+  let hitType = 'miss'; // 默认未命中
+  let isPositiveHit = false;
+  let isNegativeHit = false;
+  
+  if(predictions && predictions.length > 0){
+    // 查找该数字在预测结果中
+    const predictionForNumber = predictions.find(p => p.number === number);
+    if(predictionForNumber){
+      if(predictionForNumber.isRecommended){
+        hitType = 'positive-hit'; // 正数命中
+        isPositiveHit = true;
+      } else {
+        hitType = 'negative-hit'; // 反数命中
+        isNegativeHit = true;
+      }
+    }
+  }
+  
+  const entry = {
+    id: Date.now() + Math.floor(Math.random()*1000),
+    number,
+    timestamp: new Date().toISOString(),
+    predictions,
+    hit: isPositiveHit || isNegativeHit, // 只要命中就算
+    hitType, // 正数命中或反数命中
+    isPositiveHit,
+    isNegativeHit
+  };
+  history.unshift(entry);
+  if(history.length > 1000) history = history.slice(0,1000);
+
+  saveHistory();
+  updateStats();
+  updateHistoryList();
+  updatePredictionsDisplay();
+  updateSampleCount();
+}
+function addToHistoryBatch(numbers){
+  for(const number of numbers){
+    const predictions = predictWithEnsembleOrSingle(history);
+    // 判断命中类型：正数命中还是反数命中
+    let hitType = 'miss'; // 默认未命中
+    let isPositiveHit = false;
+    let isNegativeHit = false;
+    
+    if(predictions && predictions.length > 0){
+      // 查找该数字在预测结果中
+      const predictionForNumber = predictions.find(p => p.number === number);
+      if(predictionForNumber){
+        if(predictionForNumber.isRecommended){
+          hitType = 'positive-hit'; // 正数命中
+          isPositiveHit = true;
+        } else {
+          hitType = 'negative-hit'; // 反数命中
+          isNegativeHit = true;
+        }
+      }
+    }
+    
+    const entry = {
+      id: Date.now() + Math.floor(Math.random()*1000),
+      number,
+      timestamp: new Date().toISOString(),
+      predictions,
+      hit: isPositiveHit || isNegativeHit,
+      hitType,
+      isPositiveHit,
+      isNegativeHit
+    };
+    history.unshift(entry);
+    if(history.length > 1000) history = history.slice(0,1000);
+  }
+  saveHistory();
+  updateStats();
+  updateHistoryList();
+  updatePredictionsDisplay();
+  updateSampleCount();
+}
+
+/* ==================== 统计/历史 ==================== */
+function updateStats(){
+  document.getElementById('totalRecords').textContent = history.length;
+
+  if(history.length === 0){
+    document.getElementById('hitRate').textContent='0%';
+    document.getElementById('hottestNumber').textContent='-';
+    document.getElementById('coldestNumber').textContent='-';
+    return;
+  }
+
+  const hits = history.filter(e=>e.hit).length;
+  document.getElementById('hitRate').textContent = `${((hits/history.length)*100).toFixed(1)}%`;
+
+  const counts = new Array(10).fill(0);
+  for(const e of history) counts[e.number]++;
+  document.getElementById('hottestNumber').textContent = counts.indexOf(Math.max(...counts));
+  document.getElementById('coldestNumber').textContent = counts.indexOf(Math.min(...counts));
+}
+
+function updateHistoryList(){
+  const container = document.getElementById('historyList');
+  if(history.length === 0){
+    container.innerHTML = `<div style="color:var(--muted); text-align:center; padding:28px;">暂无历史记录</div>`;
+    return;
+  }
+
+  const recent = history.slice(0, 15);
+  container.innerHTML = recent.map(entry => {
+    const time = new Date(entry.timestamp).toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit', hour12:false});
+    
+    let hitClass = '';
+    let hitText = '';
+    if(entry.isPositiveHit){
+      hitClass = 'positive-hit';
+      hitText = '<span style="color:#10b981; font-weight:bold;">正数命中</span>';
+    } else if(entry.isNegativeHit){
+      hitClass = 'negative-hit';
+      hitText = '<span style="color:#ef4444; font-weight:bold;">反数命中</span>';
+    } else {
+      hitClass = 'miss';
+      hitText = '<span style="color:var(--muted);">未命中</span>';
+    }
+
+    // 显示预测的正数和反数
+    const positivePreds = entry.predictions?.filter(p => p.isRecommended) || [];
+    const negativePreds = entry.predictions?.filter(p => !p.isRecommended) || [];
+    
+    let predsHtml = '';
+    if(positivePreds.length > 0){
+      predsHtml += `<div style="margin-bottom:4px;"><span style="color:var(--muted); font-size:.8rem;">正数:</span> `;
+      predsHtml += positivePreds.slice(0,3).map(p=>{
+        const isHit = p.number === entry.number;
+        return `<span class="prediction-badge ${isHit?'positive-hit-badge':'positive-badge'}">${p.number}</span>`;
+      }).join('');
+      predsHtml += `</div>`;
+    }
+    
+    if(negativePreds.length > 0 && negativePreds.some(p => p.number === entry.number)){
+      predsHtml += `<div><span style="color:var(--muted); font-size:.8rem;">反数:</span> `;
+      const hitNegative = negativePreds.find(p => p.number === entry.number);
+      if(hitNegative){
+        predsHtml += `<span class="prediction-badge negative-hit-badge">${entry.number}</span>`;
+      }
+      predsHtml += `</div>`;
+    }
+
+    return `
+      <div class="history-item ${hitClass}">
+        <div class="history-number ${entry.isPositiveHit ? 'positive-number' : entry.isNegativeHit ? 'negative-number' : ''}">
+          ${entry.number}
+          ${entry.isPositiveHit ? '<div style="font-size:.7rem; color:#10b981;">正</div>' : ''}
+          ${entry.isNegativeHit ? '<div style="font-size:.7rem; color:#ef4444;">反</div>' : ''}
+        </div>
+        <div class="history-content">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-size:.9rem; color:var(--muted);">${time}</div>
+            <div style="font-size:.8rem;">${hitText}</div>
+          </div>
+          <div class="history-predictions">${predsHtml}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ==================== 模型类 ==================== */
+class CompleteNeuralNetwork{
+  constructor(){
+    this.model=null;
+    this.modelType=null;
+    this.inputShape=null;
+    this.isTrained=false;
+    this.trainingHistory=null;
+  }
+
+  createTransformerModel(seqLen, dModel=64, numHeads=4, ffDim=128){
+    const input = tf.input({shape:[seqLen,1]});
+    const x = tf.layers.dense({units:dModel, activation:'linear'}).apply(input);
+
+    const attn = tf.layers.multiHeadAttention({
+      headSize: Math.floor(dModel/numHeads),
+      numHeads,
+      dropout: 0.1
+    }).apply([x, x]);
+
+    const add1 = tf.layers.add().apply([x, attn]);
+    const norm1 = tf.layers.layerNormalization({epsilon:1e-6}).apply(add1);
+
+    const ffn = tf.layers.dense({units:ffDim, activation:'relu'}).apply(norm1);
+    const ffn2 = tf.layers.dense({units:dModel, activation:'linear'}).apply(ffn);
+
+    const add2 = tf.layers.add().apply([norm1, ffn2]);
+    const norm2 = tf.layers.layerNormalization({epsilon:1e-6}).apply(add2);
+
+    const pooled = tf.layers.globalAveragePooling1d().apply(norm2);
+    const dropout = tf.layers.dropout({rate:0.2}).apply(pooled);
+    const dense1 = tf.layers.dense({units:64, activation:'relu'}).apply(dropout);
+    const dense2 = tf.layers.dense({units:32, activation:'relu'}).apply(dense1);
+    const output = tf.layers.dense({units:10, activation:'softmax'}).apply(dense2);
+
+    const model = tf.model({inputs:input, outputs:output});
+    const lr = parseFloat(document.getElementById('learningRate').value);
+    model.compile({ optimizer: tf.train.adam(lr), loss:'categoricalCrossentropy', metrics:['accuracy'] });
+
+    this.model=model; this.modelType='transformer'; this.inputShape=[seqLen,1];
+    log(`模型构建: ${modelTypeToScheme('transformer')} | seqLen=${seqLen}`,'success');
+    return model;
+  }
+
+  createLSTMModel(seqLen, lstmUnits=64){
+    const model = tf.sequential();
+    model.add(tf.layers.lstm({units:lstmUnits, inputShape:[seqLen,1], returnSequences:true}));
+    model.add(tf.layers.dropout({rate:0.2}));
+    model.add(tf.layers.lstm({units:Math.floor(lstmUnits/2), returnSequences:false}));
+    model.add(tf.layers.dropout({rate:0.2}));
+    model.add(tf.layers.dense({units:32, activation:'relu'}));
+    model.add(tf.layers.dense({units:10, activation:'softmax'}));
+
+    const lr = parseFloat(document.getElementById('learningRate').value);
+    model.compile({ optimizer: tf.train.adam(lr), loss:'categoricalCrossentropy', metrics:['accuracy'] });
+
+    this.model=model; this.modelType='lstm'; this.inputShape=[seqLen,1];
+    log(`模型构建: ${modelTypeToScheme('lstm')} | seqLen=${seqLen}`,'success');
+    return model;
+  }
+
+  createMLPModel(inputDim=10, hidden=[128,64,32]){
+    const model = tf.sequential();
+    model.add(tf.layers.dense({units:hidden[0], inputShape:[inputDim], activation:'relu'}));
+    model.add(tf.layers.batchNormalization());
+    model.add(tf.layers.dropout({rate:0.3}));
+    model.add(tf.layers.dense({units:hidden[1], activation:'relu'}));
+    model.add(tf.layers.batchNormalization());
+    model.add(tf.layers.dropout({rate:0.2}));
+    model.add(tf.layers.dense({units:hidden[2], activation:'relu'}));
+    model.add(tf.layers.dense({units:10, activation:'softmax'}));
+
+    const lr = parseFloat(document.getElementById('learningRate').value);
+    model.compile({ optimizer: tf.train.adam(lr), loss:'categoricalCrossentropy', metrics:['accuracy'] });
+
+    this.model=model; this.modelType='mlp'; this.inputShape=[inputDim];
+    log(`模型构建: ${modelTypeToScheme('mlp')}`,'success');
+    return model;
+  }
+
+  createCNNModel(seqLen, filters=[32,64]){
+    const model = tf.sequential();
+    model.add(tf.layers.conv1d({filters:filters[0], kernelSize:3, activation:'relu', inputShape:[seqLen,1], padding:'same'}));
+    model.add(tf.layers.maxPooling1d({poolSize:2}));
+    model.add(tf.layers.conv1d({filters:filters[1], kernelSize:3, activation:'relu', padding:'same'}));
+    model.add(tf.layers.globalAveragePooling1d());
+    model.add(tf.layers.dense({units:64, activation:'relu'}));
+    model.add(tf.layers.dropout({rate:0.2}));
+    model.add(tf.layers.dense({units:32, activation:'relu'}));
+    model.add(tf.layers.dense({units:10, activation:'softmax'}));
+
+    const lr = parseFloat(document.getElementById('learningRate').value);
+    model.compile({ optimizer: tf.train.adam(lr), loss:'categoricalCrossentropy', metrics:['accuracy'] });
+
+    this.model=model; this.modelType='cnn'; this.inputShape=[seqLen,1];
+    log(`模型构建: ${modelTypeToScheme('cnn')} | seqLen=${seqLen}`,'success');
+    return model;
+  }
+
+  prepareData(historyData, seqLen){
+    if(historyData.length < seqLen+1) throw new Error(`需要至少 ${seqLen+1} 条数据训练（当前 ${historyData.length}）`);
+
+    const sequences=[], labels=[];
+    const reversed = historyData.slice().reverse();
+    for(let i=seqLen; i<reversed.length; i++){
+      sequences.push(reversed.slice(i-seqLen, i).map(h=>h.number));
+      labels.push(reversed[i].number);
+    }
+
+    if(this.modelType === 'mlp'){
+      const features = sequences.map(seq=>{
+        const freq = new Array(10).fill(0);
+        for(const n of seq) freq[n]++;
+        return freq.map(f=>f/seq.length);
+      });
+      return { xs: tf.tensor2d(features), ys: tf.oneHot(tf.tensor1d(labels,'int32'), 10) };
+    }
+
+    const xs = tf.tensor3d(sequences.map(seq => seq.map(n=>[n/9])));
+    const ys = tf.oneHot(tf.tensor1d(labels,'int32'), 10);
+    return {xs, ys};
+  }
+
+  async train(historyData, seqLen, epochs, batchSize){
+    const {xs, ys} = this.prepareData(historyData, seqLen);
+
+    this.trainingHistory = await this.model.fit(xs, ys, {
+      epochs,
+      batchSize,
+      validationSplit: 0.2,
+      shuffle: true,
+      callbacks: {
+        onEpochBegin: (epoch) => {
+          const progress = ((epoch+1)/epochs)*100;
+          document.getElementById('progressBar').style.width = `${progress}%`;
+          document.getElementById('epochProgress').textContent = `${epoch+1}/${epochs}`;
+        },
+        onEpochEnd: (epoch, logs) => {
+          const acc = logs.acc ?? logs.accuracy ?? 0;
+          const valAcc = logs.val_acc ?? logs.val_accuracy ?? 0;
+          const loss = logs.loss ?? 0;
+          const valLoss = logs.val_loss ?? logs.valLoss ?? 0;
+
+          document.getElementById('lossValue').textContent = loss.toFixed(4);
+          document.getElementById('accuracyValue').textContent = `${(acc*100).toFixed(2)}%`;
+          document.getElementById('valLossValue').textContent = valLoss.toFixed(4);
+          document.getElementById('valAccuracyValue').textContent = `${(valAcc*100).toFixed(2)}%`;
+
+          if(stopTraining) this.model.stopTraining = true;
+        }
+      }
+    });
+
+    xs.dispose(); ys.dispose();
+    this.isTrained=true;
+    return this.trainingHistory;
+  }
+
+  simplePredict(historyData){
+    if(historyData.length < 5){
+      const nums = Array.from({length:10},(_,i)=>i).sort(()=>Math.random()-0.5);
+      return nums.slice(0,5).map((n,idx)=>({number:n, probability: Math.max(0.05, 0.24-idx*0.04), rank: idx+1, isRecommended: true}));
+    }
+    const counts = new Array(10).fill(0.1);
+    for(const e of historyData.slice(0,50)) counts[e.number]++;
+    const sum = counts.reduce((a,b)=>a+b,0);
+    const probs = counts.map(c=>c/sum);
+    // 简单预测也做轻微变化
+    const picks = sampleKWithoutReplacement(probs, 5);
+    return generateAllPredictions(probs, 5);
+  }
+
+  predict(historyData){
+    if(!this.model || !this.isTrained) {
+      const simplePreds = this.simplePredict(historyData);
+      return simplePreds;
+    }
+
+    const seqLen = this.inputShape[0] ?? 10;
+    if(historyData.length < seqLen) {
+      return this.simplePredict(historyData);
+    }
+
+    try{
+      const recent = historyData.slice(0, seqLen).map(h=>h.number);
+      let inputTensor;
+
+      if(this.modelType === 'mlp'){
+        const freq = new Array(10).fill(0);
+        for(const n of recent) freq[n]++;
+        inputTensor = tf.tensor2d([freq.map(f=>f/recent.length)]);
+      }else{
+        inputTensor = tf.tensor3d([recent.map(n=>[n/9])]);
+      }
+
+      const pred = this.model.predict(inputTensor);
+      const probs = pred.arraySync()[0];
+
+      inputTensor.dispose(); pred.dispose();
+
+      // 使用新的函数生成包含所有数字的预测
+      return generateAllPredictions(probs, 5);
+
+    }catch(err){
+      log(`预测失败(回退简单预测): ${err.message}`,'warning');
+      return this.simplePredict(historyData);
+    }
+  }
+
+  getModelInfo(){
+    if(!this.model) return null;
+    return {
+      type: this.modelType,
+      totalParams: this.model.countParams().toLocaleString(),
+      inputShape: this.inputShape,
+      layers: this.model.layers.map(l=>({
+        type: l.getClassName(),
+        outputShape: l.outputShape ? l.outputShape.slice(1) : []
+      }))
+    };
+  }
+
+  async save(){
+    if(!this.model) throw new Error('没有模型可以保存');
+    await this.model.save('indexeddb://complete-nn-model-single');
+    return true;
+  }
+
+  async load(){
+    try{
+      const m = await tf.loadLayersModel('indexeddb://complete-nn-model-single');
+      this.model = m;
+
+      // 推断类型
+      const inputShape = m.inputs[0].shape;
+      if(inputShape.length === 2){
+        this.modelType = 'mlp';
+      }else{
+        const names = m.layers.map(x=>String(x.name).toLowerCase());
+        if(names.some(n=>n.includes('lstm'))) this.modelType='lstm';
+        else if(names.some(n=>n.includes('attention'))) this.modelType='transformer';
+        else if(names.some(n=>n.includes('conv'))) this.modelType='cnn';
+        else this.modelType='transformer';
+      }
+
+      this.inputShape = inputShape.slice(1);
+      this.isTrained = true;
+      return true;
+    }catch{
+      return false;
+    }
+  }
+}
+
+// 单模型预测器
+const predictor = new CompleteNeuralNetwork();
+
+/* ==================== 集成预测（Ensemble） ==================== */
+function predictProbsByModel(item, historyData){
+  const model = item.model;
+  const type = item.modelType;
+  const inputShape = item.inputShape;
+
+  if(!model) return new Array(10).fill(0.1);
+
+  const seqLen = (inputShape && inputShape[0]) ? inputShape[0] : 10;
+
+  if(historyData.length < Math.max(5, type === 'mlp' ? 5 : seqLen)){
+    // 数据不足 -> 用单模型的 simplePredict 映射成 10 维
+    const simple = predictor.simplePredict(historyData);
+    const probs = new Array(10).fill(0);
+    for(const x of simple) probs[x.number] = Math.max(probs[x.number], x.probability);
+    return normalizeProbs(probs.map(x=>Math.max(x, 1e-12)));
+  }
+
+  return tf.tidy(() => {
+    const recent = historyData.slice(0, seqLen).map(h=>h.number);
+    let inputTensor;
+
+    if(type === 'mlp'){
+      const freq = new Array(10).fill(0);
+      for(const n of recent) freq[n]++;
+      inputTensor = tf.tensor2d([freq.map(f=>f/recent.length)]);
+    }else{
+      inputTensor = tf.tensor3d([recent.map(n=>[n/9])]);
+    }
+
+    const pred = model.predict(inputTensor);
+    return pred.arraySync()[0];
+  });
+}
+
+function predictWithEnsembleOrSingle(historyData){
+  if(ensembleModels.length === 0){
+    document.getElementById('modeHint').textContent = '模式：单模型';
+    const preds = predictor.predict(historyData);
+    return preds;
+  }
+
+  document.getElementById('modeHint').textContent = `模式：集成(${ensembleModels.length})`;
+
+  const probsSum = new Array(10).fill(0);
+  let wSum = 0;
+
+  for(const item of ensembleModels){
+    if(!item.model || !item.isTrained) continue;
+    const probs = predictProbsByModel(item, historyData);
+    const w = item.weight ?? 1;
+    wSum += w;
+    for(let i=0;i<10;i++) probsSum[i] += probs[i] * w;
+  }
+
+  if(wSum <= 0){
+    return predictor.simplePredict(historyData);
+  }
+
+  const probsAvg = probsSum.map(x => x / wSum);
+  
+  // 使用新的函数生成包含所有数字的预测
+  return generateAllPredictions(probsAvg, 5);
+}
+
+/* ==================== UI：模型信息 & 预测显示 ==================== */
+function updateModelInfo(){
+  const modelName = document.getElementById('currentModelName');
+  const arch = document.getElementById('modelArchitecture');
+
+  if(ensembleModels.length){
+    modelName.textContent = `集成(${ensembleModels.length})`;
+    arch.innerHTML = `
+      <div style="color:#c7d2fe; font-weight:950; margin-bottom:10px;">Ensemble Models</div>
+      ${ensembleModels.map((m, idx)=>`
+        <div class="layer">
+          <div class="layer-type">#${idx+1} ${modelTypeToScheme(m.modelType)}</div>
+          <div class="layer-shape">weight=${(m.weight ?? 1).toFixed(3)} | input=[${(m.inputShape||[]).join(', ')}]</div>
+        </div>
+      `).join('')}
+      <div style="color:var(--muted); font-size:.86rem; margin-top:10px;">
+        说明：集成模式会对多个模型输出概率做加权平均（并做轻微采样）。
+      </div>
+    `;
+    return;
+  }
+
+  if(!predictor.model){
+    modelName.textContent='未加载';
+    arch.innerHTML = `<div style="color:var(--muted); text-align:center; padding: 18px;">等待模型训练或加载...</div>`;
+    return;
+  }
+
+  const info = predictor.getModelInfo();
+  modelName.textContent = modelTypeToScheme(info.type);
+
+  const layersHtml = info.layers.map(l=>`
+    <div class="layer">
+      <div class="layer-type">${l.type}</div>
+      <div class="layer-shape">输出: [${l.outputShape.join(', ')}]</div>
+    </div>
+  `).join('');
+
+  arch.innerHTML = `
+    <div style="margin-bottom:12px;">
+      <div style="color:#c7d2fe; font-weight:950;">总参数: ${info.totalParams}</div>
+      <div style="color:var(--muted); font-size:.9rem;">输入形状: [${info.inputShape.join(', ')}]</div>
+    </div>
+    <div style="color:var(--muted); margin-bottom:8px;">网络架构</div>
+    ${layersHtml}
+  `;
+}
+
+function updatePredictionsDisplay(){
+  const container = document.getElementById('predictionsGrid');
+  const meter = document.getElementById('confidenceMeter');
+  const meterText = document.getElementById('confidenceValue');
+
+  if(history.length === 0){
+    container.innerHTML = `
+      <div class="prediction-card">
+        <div class="prediction-number">?</div>
+        <div class="prediction-prob">等待预测</div>
+        <div class="prediction-rank">排名 #-</div>
+      </div>`;
+    meter.style.width='0%';
+    meterText.textContent='0%';
+    updateModelInfo();
+    return;
+  }
+
+  const preds = predictWithEnsembleOrSingle(history);
+
+  // 分离正数和反数
+  const positivePreds = preds.filter(p => p.isRecommended).sort((a, b) => a.rank - b.rank);
+  const negativePreds = preds.filter(p => !p.isRecommended);
+
+  let confidence = 0.35;
+  const topP = positivePreds[0]?.probability ?? 0;
+  const recent = history.slice(0, Math.min(20, history.length));
+  const hitRateRecent = recent.length ? recent.filter(x=>x.hit).length / recent.length : 0;
+  confidence = topP * 0.55 + hitRateRecent * 0.45;
+
+  const percent = Math.min(Math.max(confidence * 100, 8), 96);
+  meter.style.width = `${percent}%`;
+  meterText.textContent = `${percent.toFixed(1)}%`;
+
+  // 先显示正数（推荐的），再显示反数（未推荐的）
+  let allDisplayPreds = [...positivePreds];
+  
+  // 如果正数不足10个，添加一些反数
+  if(allDisplayPreds.length < 10){
+    // 随机选择一些反数显示
+    const randomNegatives = [...negativePreds]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, Math.min(5, 10 - allDisplayPreds.length));
+    allDisplayPreds = [...allDisplayPreds, ...randomNegatives];
+  }
+
+  container.innerHTML = allDisplayPreds.map((p, idx)=>{
+    const isHit = history[0] && history[0].number === p.number;
+    const isPositive = p.isRecommended;
+    const cardClass = isPositive ? 'positive-card' : 'negative-card';
+    const rankText = isPositive ? `排名 #${p.rank}` : '反数';
+    const probText = isPositive ? `${(p.probability*100).toFixed(1)}%` : '未推荐';
+    
+    let hitBadge = '';
+    if(isHit){
+      if(isPositive){
+        hitBadge = '<div class="hit-badge positive-badge">正✓</div>';
+      } else {
+        hitBadge = '<div class="hit-badge negative-badge">反✓</div>';
+      }
+    }
+    
+    return `
+      <div class="prediction-card ${cardClass} ${isPositive && idx===0 ? 'top-1' : ''}">
+        ${hitBadge}
+        <div class="prediction-number">${p.number}</div>
+        <div class="prediction-prob">${probText}</div>
+        <div class="prediction-rank">${rankText}</div>
+      </div>
+    `;
+  }).join('');
+
+  updateModelInfo();
+}
+
+/* ==================== 导入历史 TXT ==================== */
+function extractDigitsFromText(text){
+  const matches = String(text || '').match(/[0-9]/g);
+  if(!matches) return [];
+  return matches.map(x => parseInt(x, 10)).filter(n => Number.isInteger(n) && n>=0 && n<=9);
+}
+async function importHistoryFromText(text){
+  let digits = extractDigitsFromText(text);
+  if(digits.length === 0){
+    log('导入失败：未解析到 0-9 数字','warning');
+    return;
+  }
+  if(digits.length > 1000){
+    const ok = confirm(`检测到 ${digits.length} 个数字，系统最多保留 1000 条，是否只导入前 1000 个？`);
+    if(!ok) return;
+    digits = digits.slice(0, 1000);
+  }
+  const ok = confirm(`确定导入 ${digits.length} 条历史记录吗？`);
+  if(!ok) return;
+
+  log(`开始导入历史：${digits.length} 条`,'info');
+  addToHistoryBatch(digits);
+  log('导入完成','success');
+}
+
+/* ==================== 单模型训练 ==================== */
+async function trainModel(){
+  if(isTraining){ log('训练正在进行中...','warning'); return; }
+  if(history.length < 20){ log(`需要至少 20 条数据训练，当前 ${history.length} 条`,'error'); return; }
+
+  if(ensembleModels.length){
+    const ok = confirm('当前处于"集成模式"。继续单模型训练会关闭集成并切换到单模型。是否继续？');
+    if(!ok) return;
+    disposeEnsemble();
+  }
+
+  isTraining=true; stopTraining=false;
+  setModelStatus('训练中');
+
+  document.getElementById('trainBtn').disabled=true;
+  document.getElementById('stopTrainBtn').disabled=false;
+  document.getElementById('trainingProgress').style.display='block';
+
+  try{
+    const seqLen = parseInt(document.getElementById('seqLength').value, 10);
+    const epochs = parseInt(document.getElementById('epochs').value, 10);
+    const batchSize = parseInt(document.getElementById('batchSize').value, 10);
+
+    modelType = document.querySelector('.model-option.active').dataset.model;
+
+    log(`开始训练（单模型）：${modelTypeToScheme(modelType)}...`,'info');
+
+    switch(modelType){
+      case 'transformer': predictor.createTransformerModel(seqLen); break;
+      case 'lstm': predictor.createLSTMModel(seqLen); break;
+      case 'mlp': predictor.createMLPModel(10); break;
+      case 'cnn': predictor.createCNNModel(seqLen); break;
+    }
+
+    const seqForTrain = seqLen;
+    await predictor.train(history, seqForTrain, epochs, batchSize);
+
+    setModelStatus('已训练');
+    updatePredictionsDisplay();
+    log('单模型训练完成','success');
+
+  }catch(err){
+    log(`训练失败: ${err.message}`,'error');
+    setModelStatus(predictor.model ? '已加载' : '未加载');
+  }finally{
+    isTraining=false;
+    document.getElementById('trainBtn').disabled=false;
+    document.getElementById('stopTrainBtn').disabled=true;
+    document.getElementById('progressBar').style.width='0%';
+  }
+}
+
+function disposeEnsemble(){
+  for(const m of ensembleModels){
+    try{ m.model?.dispose?.(); }catch{}
+  }
+  ensembleModels = [];
+  updatePredictionsDisplay();
+}
+
+/* ==================== 贝叶斯优化：GP+EI（轻量实现） ==================== */
+/** 关键修改：只保留 mlp + cnn */
+const BO_MODEL_TYPES = ['mlp','cnn'];
+
+function logUniform(min, max){
+  const a = Math.log(min), b = Math.log(max);
+  return Math.exp(a + Math.random() * (b - a));
+}
+function randChoice(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+function clamp(x,a,b){ return Math.min(Math.max(x,a),b); }
+
+function encodeConfig(config){
+  const typeIdx = BO_MODEL_TYPES.indexOf(config.modelType);
+  const type = typeIdx < 0 ? 0 : typeIdx;
+
+  const seqLenN = (config.seqLen - 3) / (30 - 3);
+  const lrN = (Math.log(config.lr) - Math.log(1e-4)) / (Math.log(1e-2) - Math.log(1e-4));
+  const bsN = (Math.log(config.batchSize) - Math.log(8)) / (Math.log(128) - Math.log(8));
+  return [type / (BO_MODEL_TYPES.length-1), clamp(seqLenN,0,1), clamp(lrN,0,1), clamp(bsN,0,1)];
+}
+
+function choleskyDecomposition(A){
+  const n = A.length;
+  const L = Array.from({length:n}, () => Array(n).fill(0));
+  for(let i=0;i<n;i++){
+    for(let j=0;j<=i;j++){
+      let sum = 0;
+      for(let k=0;k<j;k++) sum += L[i][k] * L[j][k];
+      if(i === j){
+        const v = A[i][i] - sum;
+        L[i][j] = Math.sqrt(Math.max(v, 1e-12));
+      }else{
+        L[i][j] = (A[i][j] - sum) / (L[j][j] || 1e-12);
+      }
+    }
+  }
+  return L;
+}
+function choleskySolve(L, b){
+  const n = L.length;
+  const y = Array(n).fill(0);
+  for(let i=0;i<n;i++){
+    let sum = 0;
+    for(let k=0;k<i;k++) sum += L[i][k] * y[k];
+    y[i] = (b[i] - sum) / (L[i][i] || 1e-12);
+  }
+  const x = Array(n).fill(0);
+  for(let i=n-1;i>=0;i--){
+    let sum = 0;
+    for(let k=i+1;k<n;k++) sum += L[k][i] * x[k];
+    x[i] = (y[i] - sum) / (L[i][i] || 1e-12);
+  }
+  return x;
+}
+function dot(a,b){ let s=0; for(let i=0;i<a.length;i++) s += a[i]*b[i]; return s; }
+function rbfKernel(x,y,lengthScale=0.35){
+  let sumSq = 0;
+  for(let i=0;i<x.length;i++){
+    const d = (x[i]-y[i]) / lengthScale;
+    sumSq += d*d;
+  }
+  return Math.exp(-0.5 * sumSq);
+}
+function normalPdf(z){ return Math.exp(-0.5*z*z) / Math.sqrt(2*Math.PI); }
+function normalCdf(z){
+  const t = 1 / (1 + 0.2316419 * Math.abs(z));
+  const d = 0.3989423 * Math.exp(-z*z/2);
+  let p = d*t*(0.3193815 + t*(-0.3565638 + t*(1.781478 + t*(-1.821256 + t*1.330274))));
+  if(z > 0) p = 1 - p;
+  return p;
+}
+
+class BayesianOptimizer{
+  constructor(){
+    this.X=[]; this.y=[];
+    this.noise=1e-6;
+    this.lengthScale=0.35;
+  }
+  addSample(x,y){ this.X.push(x); this.y.push(y); }
+  predict(xStar){
+    const n = this.X.length;
+    if(n === 0) return {mu:0.1, sigma:0.4};
+
+    const K = Array.from({length:n}, ()=>Array(n).fill(0));
+    for(let i=0;i<n;i++){
+      for(let j=0;j<n;j++) K[i][j] = rbfKernel(this.X[i], this.X[j], this.lengthScale);
+      K[i][i] += this.noise;
+    }
+    const L = choleskyDecomposition(K);
+    const alpha = choleskySolve(L, this.y);
+
+    const kStar = this.X.map(xi => rbfKernel(xi, xStar, this.lengthScale));
+    const mu = dot(kStar, alpha);
+
+    const v = choleskySolve(L, kStar);
+    const sigma2 = Math.max(1 - dot(kStar, v), 1e-10);
+    return {mu, sigma: Math.sqrt(sigma2)};
+  }
+  expectedImprovement(xStar, bestY){
+    const {mu, sigma} = this.predict(xStar);
+    if(sigma < 1e-8) return 0;
+    const z = (mu - bestY) / sigma;
+    return (mu - bestY) * normalCdf(z) + sigma * normalPdf(z);
+  }
+  proposeNext(candidates=220){
+    const bestY = Math.max(...this.y);
+    let bestX=null, bestEI=-1;
+    for(let i=0;i<candidates;i++){
+      const cfg = sampleRandomConfig();
+      const x = encodeConfig(cfg);
+      const ei = this.expectedImprovement(x, bestY);
+      if(ei > bestEI){ bestEI=ei; bestX=x; }
+    }
+    return bestX;
+  }
+}
+
+function sampleRandomConfig(){
+  const modelType = randChoice(BO_MODEL_TYPES);
+  const seqLen = Math.floor(3 + Math.random() * 28); // 3..30
+  const lr = logUniform(1e-4, 1e-2);
+  const batchSize = Math.round(Math.pow(2, Math.round(Math.log2(8) + Math.random() * (Math.log2(128)-Math.log2(8)))));
+  return { modelType, seqLen, lr, batchSize };
+}
+function decodeToNearestConfig(x){
+  const typeIdx = Math.round(x[0] * (BO_MODEL_TYPES.length - 1));
+  const modelType = BO_MODEL_TYPES[clamp(typeIdx,0,BO_MODEL_TYPES.length-1)];
+
+  const seqLen = Math.round(3 + clamp(x[1],0,1) * (30-3));
+  const lr = Math.exp(Math.log(1e-4) + clamp(x[2],0,1) * (Math.log(1e-2)-Math.log(1e-4)));
+  const bs = Math.exp(Math.log(8) + clamp(x[3],0,1) * (Math.log(128)-Math.log(8)));
+  const batchSize = Math.pow(2, Math.round(Math.log2(bs)));
+  return { modelType, seqLen, lr, batchSize };
+}
+
+async function evaluateConfigQuick(config, quickEpochs){
+  const seqLen = config.seqLen;
+
+  const lrEl = document.getElementById('learningRate');
+  const oldLr = lrEl.value;
+  lrEl.value = String(config.lr);
+
+  const temp = new CompleteNeuralNetwork();
+  try{
+    switch(config.modelType){
+      case 'mlp': temp.createMLPModel(10); break;
+      case 'cnn': temp.createCNNModel(config.seqLen); break;
+      default: temp.createMLPModel(10);
+    }
+
+    const {xs, ys} = temp.prepareData(history, seqLen);
+
+    let bestValAcc = 0;
+    let bestValLoss = 999;
+
+    await temp.model.fit(xs, ys, {
+      epochs: quickEpochs,
+      batchSize: config.batchSize,
+      validationSplit: 0.2,
+      shuffle: true,
+      callbacks: {
+        onEpochEnd: async (epoch, logs) => {
+          const valAcc = (logs.val_acc ?? logs.val_accuracy ?? 0);
+          const valLoss = (logs.val_loss ?? logs.valLoss ?? 999);
+          bestValAcc = Math.max(bestValAcc, valAcc);
+          bestValLoss = Math.min(bestValLoss, valLoss);
+          if(stopOptimizing) temp.model.stopTraining = true;
+        }
+      }
+    });
+
+    xs.dispose(); ys.dispose();
+    return {valAcc: bestValAcc, valLoss: bestValLoss};
+  } finally {
+    lrEl.value = oldLr;
+    try{ temp.model?.dispose?.(); }catch{}
+    await tf.nextFrame();
+  }
+}
+
+function renderBoLeaderboard(){
+  const el = document.getElementById('boLeaderboard');
+  if(!el) return;
+  if(boResults.length === 0){
+    el.innerHTML = `<div style="color:var(--muted); text-align:center; padding:12px;">暂无结果</div>`;
+    return;
+  }
+  const sorted = boResults.slice().sort((a,b)=>b.valAcc - a.valAcc).slice(0, 12);
+  el.innerHTML = sorted.map((r, idx) => {
+    const c = r.config;
+    const topClass = idx === 0 ? 'top' : '';
+    return `
+      <div class="bo-row ${topClass}">
+        <div class="bo-left">
+          <div class="bo-title">#${idx+1} ${modelTypeToScheme(c.modelType)} <span class="bo-tag">lr=${c.lr.toFixed(5)}</span></div>
+          <div class="bo-sub">
+            <span class="bo-tag">seqLen=${c.seqLen}</span>
+            <span class="bo-tag">batch=${c.batchSize}</span>
+          </div>
+        </div>
+        <div class="bo-right">
+          <div class="bo-score">val_acc ${(r.valAcc*100).toFixed(2)}%</div>
+          <div class="bo-sub">val_loss ${Number.isFinite(r.valLoss) ? r.valLoss.toFixed(4) : '-'}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function getBestBoResult(){
+  if(boResults.length === 0) return null;
+  return boResults.slice().sort((a,b)=>b.valAcc-a.valAcc)[0];
+}
+
+async function applyBestAsSingleModel(){
+  const best = getBestBoResult();
+  if(!best){ log('没有可应用的最佳结果','warning'); return; }
+
+  disposeEnsemble();
+
+  const type = best.config.modelType;
+  document.querySelectorAll('.model-option').forEach(x=>{
+    x.classList.toggle('active', x.dataset.model === type);
+  });
+
+  document.getElementById('seqLength').value = String(best.config.seqLen);
+  document.getElementById('seqLengthValue').textContent = String(best.config.seqLen);
+
+  document.getElementById('batchSize').value = String(best.config.batchSize);
+  document.getElementById('batchSizeValue').textContent = String(best.config.batchSize);
+
+  document.getElementById('learningRate').value = String(best.config.lr);
+  document.getElementById('learningRateValue').textContent = String(best.config.lr);
+
+  log(`已应用最佳配置（单模型）：${modelTypeToScheme(type)} | seqLen=${best.config.seqLen} lr=${best.config.lr.toFixed(6)} batch=${best.config.batchSize}`,'success');
+}
+
+async function trainTopKEnsemble(topK){
+  const sorted = boResults.slice().sort((a,b)=>b.valAcc-a.valAcc).slice(0, topK);
+  if(sorted.length === 0) throw new Error('没有可用的优化结果');
+
+  const epochs = parseInt(document.getElementById('epochs').value,10);
+  const ok = confirm(`将训练并启用 Top-${sorted.length} 集成（每个模型训练 epochs=${epochs}）。可能较慢，是否继续？`);
+  if(!ok) return;
+
+  disposeEnsemble();
+  setModelStatus('训练中');
+
+  const use = [];
+  for(const item of sorted){
+    if(stopOptimizing) break;
+
+    const cfg = item.config;
+    log(`集成训练：${modelTypeToScheme(cfg.modelType)} | seqLen=${cfg.seqLen} lr=${cfg.lr.toFixed(6)} batch=${cfg.batchSize}`,'info');
+
+    const temp = new CompleteNeuralNetwork();
+    const lrEl = document.getElementById('learningRate');
+    const oldLr = lrEl.value;
+    lrEl.value = String(cfg.lr);
+
+    try{
+      switch(cfg.modelType){
+        case 'mlp': temp.createMLPModel(10); break;
+        case 'cnn': temp.createCNNModel(cfg.seqLen); break;
+        default: temp.createMLPModel(10);
+      }
+
+      const seqLen = cfg.seqLen;
+      await temp.train(history, seqLen, epochs, cfg.batchSize);
+
+      use.push({
+        model: temp.model,
+        modelType: temp.modelType,
+        inputShape: temp.inputShape,
+        isTrained: true,
+        weight: Math.max(0.05, item.valAcc),
+        name: `${cfg.modelType}-${Date.now()}`
+      });
+
+      temp.model = null;
+    } finally {
+      lrEl.value = oldLr;
+      await tf.nextFrame();
+    }
+  }
+
+  ensembleModels = use;
+  setModelStatus(ensembleModels.length ? '已训练' : '未加载');
+  log(`集成启用：${ensembleModels.length} 个模型`,'success');
+  updatePredictionsDisplay();
+}
+
+/* ==================== 交互：提交/随机/自动 ==================== */
+async function submitNumber(){
+  const input = document.getElementById('numberInput');
+  const value = parseInt(input.value, 10);
+
+  if(Number.isNaN(value) || value<0 || value>9){
+    log('请输入 0-9 之间的有效数字','error');
+    return;
+  }
+
+  const preds = predictWithEnsembleOrSingle(history);
+  addToHistory(value, preds);
+
+  const hit = preds.some(p=>p.number===value);
+  const hitType = preds.find(p=>p.number===value)?.isRecommended ? '正数命中' : '反数命中';
+  log(`提交: ${value} | 预测: ${preds.filter(p=>p.isRecommended).map(p=>p.number).join(', ')}... | ${hit ? hitType : '未命中'}`, hit?'success':'warning');
+
+  input.value='';
+  input.focus();
+}
+function submitRandom(){
+  document.getElementById('numberInput').value = Math.floor(Math.random()*10);
+  submitNumber();
+}
+async function autoSubmit(){
+  const count = 10;
+  log(`开始自动提交 ${count} 个随机数字...`,'info');
+  for(let i=0;i<count;i++){
+    setTimeout(()=>{
+      const n = Math.floor(Math.random()*10);
+      const preds = predictWithEnsembleOrSingle(history);
+      addToHistory(n, preds);
+      const hit = preds.some(p=>p.number===n);
+      const hitType = preds.find(p=>p.number===n)?.isRecommended ? '正数命中' : '反数命中';
+      log(`自动提交: ${n} | ${hit ? hitType : '未命中'}`, hit?'success':'info');
+    }, i*260);
+  }
+}
+
+/* ==================== 初始化绑定 ==================== */
+document.addEventListener('DOMContentLoaded', async ()=>{
+  log('系统初始化完成','info');
+  updateStats();
+  updateHistoryList();
+  updateSampleCount();
+  await detectBackend();
+  setModelStatus('未加载');
+
+  const ok = await predictor.load();
+  if(ok){
+    log('已加载之前保存的单模型','success');
+    setModelStatus('已加载');
+  }
+
+  updatePredictionsDisplay();
+  log('系统就绪','success');
+});
+
+document.getElementById('submitBtn').addEventListener('click', submitNumber);
+document.getElementById('numberInput').addEventListener('keypress', e=>{ if(e.key==='Enter') submitNumber(); });
+document.getElementById('randomBtn').addEventListener('click', submitRandom);
+document.getElementById('autoSubmitBtn').addEventListener('click', autoSubmit);
+
+document.getElementById('importBtn').addEventListener('click', ()=>{
+  const fileInput = document.getElementById('importFile');
+  fileInput.value = '';
+  fileInput.click();
+});
+document.getElementById('importFile').addEventListener('change', async (e)=>{
+  const file = e.target.files?.[0];
+  if(!file) return;
+  try{
+    const text = await file.text();
+    await importHistoryFromText(text);
+  }catch(err){
+    log(`读取 TXT 失败: ${err.message}`,'error');
+  }
+});
+
+document.getElementById('clearBtn').addEventListener('click', ()=>{
+  if(history.length===0){ log('没有数据可清空','warning'); return; }
+  if(confirm(`确定清空 ${history.length} 条历史记录吗？`)){
+    history=[];
+    saveHistory();
+    updateStats();
+    updateHistoryList();
+    updatePredictionsDisplay();
+    updateSampleCount();
+    log('所有历史记录已清空','warning');
+  }
+});
+
+document.querySelectorAll('.model-option').forEach(opt=>{
+  opt.addEventListener('click', ()=>{
+    document.querySelectorAll('.model-option').forEach(x=>x.classList.remove('active'));
+    opt.classList.add('active');
+    modelType = opt.dataset.model;
+    log(`切换方案: ${modelTypeToScheme(modelType)}`,'info');
+  });
+});
+
+document.getElementById('seqLength').addEventListener('input', e=>{ document.getElementById('seqLengthValue').textContent = e.target.value; });
+document.getElementById('epochs').addEventListener('input', e=>{ document.getElementById('epochsValue').textContent = e.target.value; });
+document.getElementById('batchSize').addEventListener('input', e=>{ document.getElementById('batchSizeValue').textContent = e.target.value; });
+document.getElementById('learningRate').addEventListener('input', e=>{ document.getElementById('learningRateValue').textContent = e.target.value; });
+
+document.getElementById('trainBtn').addEventListener('click', trainModel);
+document.getElementById('stopTrainBtn').addEventListener('click', ()=>{ stopTraining=true; log('正在停止训练...','warning'); });
+
+document.getElementById('saveModelBtn').addEventListener('click', async ()=>{
+  if(!predictor.model || !predictor.isTrained){ log('没有训练好的单模型可以保存','warning'); return; }
+  if(ensembleModels.length){ log('当前是集成模式：只支持保存"单模型"。请先切换单模型并训练。','warning'); return; }
+  try{ await predictor.save(); log('单模型已保存到浏览器 IndexedDB','success'); }
+  catch(err){ log(`保存失败: ${err.message}`,'error'); }
+});
+
+document.getElementById('loadModelBtn').addEventListener('click', async ()=>{
+  disposeEnsemble();
+  try{
+    const ok = await predictor.load();
+    if(ok){
+      log('单模型加载成功','success');
+      setModelStatus('已加载');
+      updatePredictionsDisplay();
+    }else{
+      log('没有找到已保存的单模型','warning');
+      setModelStatus('未加载');
+    }
+  }catch(err){
+    log(`加载失败: ${err.message}`,'error');
+    setModelStatus('未加载');
+  }
+});
+
+document.getElementById('clearLogBtn').addEventListener('click', ()=>{
+  document.getElementById('logContainer').innerHTML='';
+  log('日志已清空','info');
+});
+
+/* ==================== BO：滑条显示 & 按钮 ==================== */
+document.getElementById('boTrials').addEventListener('input', e=>{
+  document.getElementById('boTrialsValue').textContent = e.target.value;
+});
+document.getElementById('boQuickEpochs').addEventListener('input', e=>{
+  document.getElementById('boQuickEpochsValue').textContent = e.target.value;
+});
+document.getElementById('boTopK').addEventListener('input', e=>{
+  document.getElementById('boTopKValue').textContent = e.target.value;
+});
+
+document.getElementById('boStartBtn').addEventListener('click', async ()=>{
+  if(isOptimizing){ log('优化正在进行中...','warning'); return; }
+  if(history.length < 20){ log('数据太少，至少需要 20 条才能开始优化','error'); return; }
+
+  isOptimizing = true;
+  stopOptimizing = false;
+  boResults = [];
+  renderBoLeaderboard();
+
+  document.getElementById('boStartBtn').disabled = true;
+  document.getElementById('boStopBtn').disabled = false;
+  document.getElementById('boApplyBestBtn').disabled = true;
+
+  const trials = parseInt(document.getElementById('boTrials').value,10);
+  const quickEpochs = parseInt(document.getElementById('boQuickEpochs').value,10);
+  const status = document.getElementById('boStatusText');
+
+  try{
+    status.textContent = `进行中 0/${trials}`;
+    log(`开始贝叶斯优化（仅 MLP+CNN）：trials=${trials}, quickEpochs=${quickEpochs}`,'info');
+
+    const bo = new BayesianOptimizer();
+    const warmup = Math.min(4, trials);
+
+    for(let i=0;i<warmup;i++){
+      if(stopOptimizing) break;
+      const cfg = sampleRandomConfig();
+      status.textContent = `热启动 ${i+1}/${trials}`;
+      log(`BO 热启动 #${i+1}: ${modelTypeToScheme(cfg.modelType)} seqLen=${cfg.seqLen} lr=${cfg.lr.toFixed(6)} batch=${cfg.batchSize}`,'info');
+
+      const r = await evaluateConfigQuick(cfg, quickEpochs);
+      bo.addSample(encodeConfig(cfg), r.valAcc);
+      boResults.push({config: cfg, valAcc: r.valAcc, valLoss: r.valLoss});
+      renderBoLeaderboard();
+    }
+
+    for(let t=warmup; t<trials; t++){
+      if(stopOptimizing) break;
+
+      const xNext = bo.proposeNext(240);
+      const cfg = decodeToNearestConfig(xNext);
+
+      status.textContent = `进行中 ${t+1}/${trials}`;
+      log(`BO 试验 #${t+1}: ${modelTypeToScheme(cfg.modelType)} seqLen=${cfg.seqLen} lr=${cfg.lr.toFixed(6)} batch=${cfg.batchSize}`,'info');
+
+      const r = await evaluateConfigQuick(cfg, quickEpochs);
+      bo.addSample(encodeConfig(cfg), r.valAcc);
+      boResults.push({config: cfg, valAcc: r.valAcc, valLoss: r.valLoss});
+      renderBoLeaderboard();
+    }
+
+    const best = getBestBoResult();
+    if(best){
+      log(`优化完成：最佳 ${modelTypeToScheme(best.config.modelType)} | val_acc ${(best.valAcc*100).toFixed(2)}%`,'success');
+      status.textContent = `完成（最佳 val_acc ${(best.valAcc*100).toFixed(2)}%）`;
+      document.getElementById('boApplyBestBtn').disabled = false;
+
+      const useEnsemble = document.getElementById('boUseEnsemble').checked;
+      const topK = parseInt(document.getElementById('boTopK').value,10);
+      if(useEnsemble){
+        await trainTopKEnsemble(topK);
+      }
+    } else {
+      status.textContent = '完成（无结果）';
+      log('优化结束，但没有得到有效结果','warning');
+    }
+  } catch(err){
+    status.textContent = '失败';
+    log(`贝叶斯优化失败: ${err.message}`,'error');
+  } finally {
+    isOptimizing = false;
+    document.getElementById('boStartBtn').disabled = false;
+    document.getElementById('boStopBtn').disabled = true;
+  }
+});
+
+document.getElementById('boStopBtn').addEventListener('click', ()=>{
+  stopOptimizing = true;
+  stopTraining = true;
+  log('正在停止优化/训练...','warning');
+});
+document.getElementById('boApplyBestBtn').addEventListener('click', applyBestAsSingleModel);
+</script>
+</body>
 </html>
